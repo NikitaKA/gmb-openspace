@@ -765,7 +765,8 @@
     <script>
         // ===== STATE =====
         let departments = [];
-        const REFRESH_INTERVAL = 60_000; // 1 min
+        let refreshInterval = 60_000; // default, updated from server
+        let refreshTimer = null;
 
         // ===== STATUS HELPERS =====
         const statusPriority = { inProgress: 0, review: 1, testing: 2, paused: 3 };
@@ -816,6 +817,12 @@
                 document.getElementById('updateInfo').textContent =
                     `Обновлено в ${updatedAt.toLocaleTimeString('ru-RU')}`;
                 render();
+                // Reschedule polling if server interval changed
+                if (data.refreshInterval && data.refreshInterval !== refreshInterval) {
+                    refreshInterval = data.refreshInterval;
+                    if (refreshTimer) clearInterval(refreshTimer);
+                    refreshTimer = setInterval(fetchTeam, refreshInterval);
+                }
             } catch (err) {
                 console.error('Fetch failed:', err);
                 document.getElementById('updateInfo').textContent = `Ошибка загрузки`;
@@ -1013,7 +1020,7 @@
         fetchTeam();
         updateClock();
         setInterval(updateClock, 1000);
-        setInterval(fetchTeam, REFRESH_INTERVAL);
+        refreshTimer = setInterval(fetchTeam, refreshInterval);
     </script>
 </body>
 </html>

@@ -157,13 +157,27 @@ async function fetchTeamTasks() {
     }));
 }
 
+// ===== Polling schedule =====
+function getRefreshInterval() {
+    const now = new Date();
+    const day = now.getDay();        // 0=Sun, 6=Sat
+    const hour = now.getHours();
+    const isWeekend = day === 0 || day === 6;
+
+    if (isWeekend)                     return 3_600_000;  // weekends: 1h
+    if (hour >= 9 && hour < 20)        return 60_000;     // workday 9-20: 1min
+    if ((hour >= 7 && hour < 9) ||
+        (hour >= 20 && hour < 23))     return 600_000;    // shoulder hours: 10min
+    return 3_600_000;                                     // night (23-7): 1h
+}
+
 // ===== Cache =====
 let cache = { data: null, updatedAt: null };
-const CACHE_TTL = 60_000; // 1 minute
 
 async function getTeamData() {
     const now = Date.now();
-    if (cache.data && cache.updatedAt && (now - cache.updatedAt) < CACHE_TTL) {
+    const ttl = getRefreshInterval();
+    if (cache.data && cache.updatedAt && (now - cache.updatedAt) < ttl) {
         return cache;
     }
     try {
@@ -186,7 +200,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/team', async (req, res) => {
     try {
         const { data, updatedAt } = await getTeamData();
-        res.json({ departments: data, updatedAt });
+        res.json({ departments: data, updatedAt, refreshInterval: getRefreshInterval() });
     } catch (err) {
         res.status(502).json({ error: 'Failed to fetch tracker data', details: err.message });
     }
