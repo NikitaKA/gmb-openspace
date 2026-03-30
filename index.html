@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetMeBack HQ — Командный Пульт</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0c0e1a;
+            --bg-card: #161929;
+            --bg-card-hover: #1c2038;
+            --border: #2a2e45;
+            --text: #e2e8f0;
+            --text-dim: #8892b0;
+            --green: #4ade80;
+            --green-bg: rgba(74, 222, 128, 0.1);
+            --blue: #60a5fa;
+            --blue-bg: rgba(96, 165, 250, 0.1);
+            --purple: #c084fc;
+            --purple-bg: rgba(192, 132, 252, 0.1);
+            --cyan: #22d3ee;
+            --cyan-bg: rgba(34, 211, 238, 0.1);
+            --gray: #64748b;
+            --gray-bg: rgba(100, 116, 139, 0.1);
+            --orange: #fb923c;
+            --pink: #f472b6;
+            --yellow: #fbbf24;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(42, 46, 69, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 46, 69, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ambient glow */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(74, 222, 128, 0.03) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(96, 165, 250, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--green), var(--cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--bg);
+        }
+
+        .logo-text h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text), var(--text-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .stat-green .stat-value { color: var(--green); }
+        .stat-blue .stat-value { color: var(--blue); }
+        .stat-purple .stat-value { color: var(--purple); }
+        .stat-gray .stat-value { color: var(--gray); }
+
+        .clock {
+            font-size: 13px;
+            color: var(--text-dim);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .clock-time {
+            font-size: 20px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text);
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s ease-in-out infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ===== WORKSTATIONS GRID ===== */
+        .workstations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        /* ===== WORKSTATION CARD ===== */
+        .workstation {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .workstation:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .workstation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--status-color, var(--gray));
+            border-radius: 16px 16px 0 0;
+        }
+
+        /* ===== DESK SCENE ===== */
+        .desk-scene {
+            position: relative;
+            height: 160px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 16px 16px 0;
+            overflow: hidden;
+        }
+
+        /* Monitor */
+        .monitor {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+        }
+
+        .monitor-frame {
+            background: #1e2235;
+            border: 2px solid #2d3250;
+            border-radius: 8px;
+            padding: 8px;
+            position: relative;
+        }
+
+        .monitor-screen {
+            background: #0d1117;
+            border-radius: 4px;
+            padding: 8px;
+            min-height: 52px;
+            font-size: 9px;
+            color: var(--status-color, var(--text-dim));
+            line-height: 1.4;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .monitor-screen .task-key-sm {
+            font-weight: 700;
+            opacity: 0.7;
+            display: block;
+            margin-bottom: 2px;
+            font-size: 8px;
+        }
+
+        .monitor-stand {
+            width: 20px;
+            height: 12px;
+            background: #2d3250;
+            margin: 0 auto;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+        }
+
+        .monitor-base {
+            width: 40px;
+            height: 4px;
+            background: #2d3250;
+            margin: 0 auto;
+            border-radius: 0 0 2px 2px;
+        }
+
+        /* Active monitor glow */
+        .workstation[data-primary-status="inProgress"] .monitor-frame {
+            border-color: rgba(74, 222, 128, 0.3);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.1);
+        }
+        .workstation[data-primary-status="review"] .monitor-frame {
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.1);
+        }
+        .workstation[data-primary-status="testing"] .monitor-frame {
+            border-color: rgba(192, 132, 252, 0.3);
+            box-shadow: 0 0 20px rgba(192, 132, 252, 0.1);
+        }
+
+        /* Character */
+        .character {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .char-head {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--bg);
+            position: relative;
+            z-index: 2;
+            border: 3px solid var(--bg-card);
+        }
+
+        .char-body {
+            width: 52px;
+            height: 28px;
+            border-radius: 26px 26px 0 0;
+            margin-top: -8px;
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        /* Desk surface */
+        .desk-surface {
+            position: absolute;
+            bottom: 0;
+            left: 16px;
+            right: 16px;
+            height: 36px;
+            background: linear-gradient(180deg, #1e2235, #181b2e);
+            border-radius: 8px 8px 0 0;
+            border-top: 2px solid #2d3250;
+            z-index: 0;
+        }
+
+        /* Desk items */
+        .desk-item {
+            position: absolute;
+            font-size: 16px;
+            z-index: 3;
+        }
+
+        .desk-item.coffee { bottom: 36px; right: 32px; }
+        .desk-item.plant { bottom: 36px; left: 28px; }
+        .desk-item.cat { bottom: 36px; right: 28px; }
+        .desk-item.headphones { bottom: 36px; left: 32px; }
+
+        /* Status indicator bubble */
+        .status-bubble {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 18px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        /* Typing animation */
+        .typing-dots {
+            position: absolute;
+            bottom: 44px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            z-index: 5;
+        }
+
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* Zzz animation */
+        .zzz {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--gray);
+            animation: zzz 2s ease-in-out infinite;
+        }
+
+        .zzz::after {
+            content: 'z';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            font-size: 10px;
+            animation: zzz 2s ease-in-out infinite 0.5s;
+        }
+
+        .zzz::before {
+            content: 'z';
+            position: absolute;
+            top: -16px;
+            left: 18px;
+            font-size: 8px;
+            animation: zzz 2s ease-in-out infinite 1s;
+        }
+
+        @keyframes zzz {
+            0%, 100% { opacity: 0.3; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-4px); }
+        }
+
+        /* ===== PERSON INFO ===== */
+        .person-info {
+            padding: 16px 20px 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .person-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .role-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-badge.frontend { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+        .role-badge.backend { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+        .role-badge.qa { background: rgba(192, 132, 252, 0.15); color: var(--purple); }
+        .role-badge.design { background: rgba(244, 114, 182, 0.15); color: var(--pink); }
+
+        .task-count {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-dim);
+            background: rgba(255,255,255,0.05);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .task-count strong {
+            color: var(--text);
+        }
+
+        /* ===== TASK LIST ===== */
+        .task-list {
+            padding: 8px 20px 16px;
+        }
+
+        .task-group-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            margin: 8px 0 4px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .task-item:last-child { border-bottom: none; }
+
+        .task-item:hover {
+            padding-left: 4px;
+        }
+
+        .task-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .task-dot.status-inProgress { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .task-dot.status-review { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+        .task-dot.status-testing { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+        .task-dot.status-paused { background: var(--gray); }
+
+        .task-key {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .task-summary {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text);
+            font-size: 12px;
+        }
+
+        .task-status-pill {
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .task-status-pill.s-inProgress { background: var(--green-bg); color: var(--green); }
+        .task-status-pill.s-review { background: var(--blue-bg); color: var(--blue); }
+        .task-status-pill.s-testing { background: var(--purple-bg); color: var(--purple); }
+        .task-status-pill.s-paused { background: var(--gray-bg); color: var(--gray); }
+
+        /* ===== TABS ===== */
+        .task-tabs {
+            display: flex;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            gap: 0;
+        }
+
+        .task-tab {
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .task-tab:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .task-tab.active {
+            color: var(--text);
+        }
+
+        .task-tab.active[data-tab="inProgress"] { border-bottom-color: var(--green); }
+        .task-tab.active[data-tab="review"] { border-bottom-color: var(--blue); }
+        .task-tab.active[data-tab="testing"] { border-bottom-color: var(--purple); }
+        .task-tab.active[data-tab="paused"] { border-bottom-color: var(--gray); }
+
+        .tab-count {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.06);
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .task-tab.active[data-tab="inProgress"] .tab-count { background: var(--green-bg); color: var(--green); }
+        .task-tab.active[data-tab="review"] .tab-count { background: var(--blue-bg); color: var(--blue); }
+        .task-tab.active[data-tab="testing"] .tab-count { background: var(--purple-bg); color: var(--purple); }
+        .task-tab.active[data-tab="paused"] .tab-count { background: var(--gray-bg); color: var(--gray); }
+
+        .task-tab.empty {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 8px 20px 16px;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .tab-empty-msg {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 12px;
+            padding: 12px 0;
+        }
+
+        /* No tasks state */
+        .no-tasks {
+            padding: 12px 0;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        .no-tasks-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            header { flex-direction: column; gap: 16px; align-items: flex-start; }
+            .header-stats { gap: 16px; }
+            .workstations { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 1100px) {
+            .workstations { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon">HQ</div>
+                <div class="logo-text">
+                    <h1>GetMeBack HQ</h1>
+                    <p>Командный пульт разработки</p>
+                </div>
+            </div>
+            <div class="header-stats" id="headerStats"></div>
+            <div class="clock">
+                <div class="clock-time" id="clockTime">--:--:--</div>
+                <div><span class="pulse-dot"></span>Данные от 30 марта</div>
+            </div>
+        </header>
+
+        <div class="workstations" id="workstations"></div>
+
+        <footer>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> В работе</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Ревью</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Тестируется</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--gray)"></div> На паузе</div>
+            </div>
+            <div>GetMeBack &copy; 2026 &mdash; Prototype v1</div>
+        </footer>
+    </div>
+
+    <script>
+        // ===== TEAM DATA =====
+        const team = [
+            {
+                name: "Никита К.",
+                fullName: "Коробочкин Никита",
+                role: "frontend",
+                roleLabel: "Frontend",
+                avatar: "НК",
+                color: "#22d3ee",
+                deskItems: ["headphones", "coffee"],
+                tasks: [
+                    { key: "DEV-5003", summary: "Перевести новости на новую админку", status: "inProgress" },
+                    { key: "DEV-3218", summary: "Миграция на Capacitor", status: "inProgress" }
+                ]
+            },
+            {
+                name: "Булат Х.",
+                fullName: "Булат Хайрутдинов",
+                role: "backend",
+                roleLabel: "Backend",
+                avatar: "БХ",
+                color: "#fb923c",
+                deskItems: ["coffee"],
+                tasks: [
+                    { key: "DEV-4859", summary: "Не сходятся цифры в отчёте Paygine и Pay", status: "paused" },
+                    { key: "DEV-4690", summary: "Не заполняется шкала чаевых официанта", status: "paused" },
+                    { key: "DEV-4670", summary: "Имя/фамилия путаются в профиле приложения", status: "paused" }
+                ]
+            },
+            {
+                name: "Юлия К.",
+                fullName: "Юлия Королева",
+                role: "backend",
+                roleLabel: "Backend",
+                avatar: "ЮК",
+                color: "#fb923c",
+                deskItems: ["plant", "coffee"],
+                tasks: [
+                    { key: "DEV-4687", summary: "Не начисляются баллы по автовозврату", status: "inProgress" },
+                    { key: "DEV-4412", summary: "Tilda: Эмулятор платёжного шлюза", status: "review" },
+                    { key: "DEV-4346", summary: "Одноразовость подарка пропадает при добавлении в чек", status: "review" },
+                    { key: "DEV-5022", summary: "Смещение времени email-рассылки", status: "review" },
+                    { key: "DEV-5050", summary: "LoggingBehavior не логирует AdminLog", status: "review" },
+                    { key: "DEV-5021", summary: "Разделить продажи в зале и на доставку", status: "review" },
+                    { key: "DEV-5008", summary: "Ошибка при отправке приглашения в Диадок", status: "review" },
+                    { key: "DEV-4286", summary: "Неверное значение paidByCash при скидке", status: "review" },
+                    { key: "DEV-3758", summary: "Рефакторинг Validator::setBonus()", status: "review" },
+                    { key: "DEV-2501", summary: "Кнопка Копировать в архивных PUSH-рассылках", status: "testing" },
+                    { key: "DEV-4920", summary: "Правки в выплаты чаевых официанту", status: "paused" },
+                    { key: "DEV-4976", summary: "Баллы автовозврата в мультирегиональном кабинете", status: "paused" },
+                    { key: "DEV-4654", summary: "Рефакторинг фильтрации аудиторий", status: "paused" },
+                    { key: "DEV-3187", summary: "Сохранять вылетающих из аудитории пользователей", status: "paused" },
+                    { key: "DEV-3663", summary: "Добавить логи в REST API", status: "paused" }
+                ]
+            },
+            {
+                name: "Алексей П.",
+                fullName: "Алексей Поляков",
+                role: "frontend",
+                roleLabel: "Frontend",
+                avatar: "АП",
+                color: "#22d3ee",
+                deskItems: ["cat"],
+                tasks: [
+                    { key: "DEV-5034", summary: "Не выводятся данные по клиентам акции", status: "inProgress" },
+                    { key: "DEV-4989", summary: "Верстка и связка API ручной настройки остатков", status: "review" },
+                    { key: "DEV-4940", summary: "Выводить % внедрения лояльности", status: "review" },
+                    { key: "DEV-5009", summary: "Правки в опросах", status: "review" }
+                ]
+            },
+            {
+                name: "Павел Ж.",
+                fullName: "Павел Журавлев",
+                role: "backend",
+                roleLabel: "Backend",
+                avatar: "ПЖ",
+                color: "#fb923c",
+                deskItems: ["plant"],
+                tasks: [
+                    { key: "DEV-3871", summary: "Начисление баллов по автовозврату в хранилище", status: "inProgress" },
+                    { key: "DEV-4449", summary: "Исправить проблемы сбора статистики", status: "inProgress" },
+                    { key: "DEV-2932", summary: "Логирование API запросов с ClickHouse", status: "inProgress" },
+                    { key: "DEV-4518", summary: "App: Back. Автообновление", status: "testing" },
+                    { key: "DEV-3685", summary: "Универсальная платёжная система GMB в Tilda", status: "paused" },
+                    { key: "DEV-2814", summary: "Убрать проверку номера при регистрации", status: "paused" },
+                    { key: "DEV-2419", summary: "Не синхронизируется часовой пояс", status: "paused" }
+                ]
+            },
+            {
+                name: "Павел М.",
+                fullName: "Павел Маслаков",
+                role: "qa",
+                roleLabel: "QA",
+                avatar: "ПМ",
+                color: "#c084fc",
+                deskItems: ["coffee"],
+                tasks: [
+                    { key: "DEV-2981", summary: "Актуализировать данные в TestIT", status: "inProgress" }
+                ]
+            },
+            {
+                name: "Анастасия С.",
+                fullName: "Анастасия Сушкова",
+                role: "design",
+                roleLabel: "Дизайн",
+                avatar: "АС",
+                color: "#f472b6",
+                deskItems: ["plant", "coffee"],
+                tasks: [
+                    { key: "DEV-3780", summary: "Новая админка — Клиенты и аудитории", status: "inProgress" },
+                    { key: "DEV-5028", summary: "Цена товара для доставки и самовывоза", status: "inProgress" },
+                    { key: "DEV-4733", summary: "Сгораемые уровни в Pay, App", status: "inProgress" },
+                    { key: "DEV-4095", summary: "Блок Уже заказывали", status: "review" },
+                    { key: "DEV-4632", summary: "Выводить кол-во запросов и лимиты", status: "paused" },
+                    { key: "DEV-3684", summary: "Дизайн-проект корзины Tilda", status: "paused" },
+                    { key: "DEV-4096", summary: "Доставка ко времени", status: "paused" },
+                    { key: "DEV-4192", summary: "Экран начисления баллов для прилаги", status: "paused" },
+                    { key: "DEV-4195", summary: "Кнопка действия для акций и новостей", status: "paused" },
+                    { key: "DEV-4217", summary: "Дашборд в WellSales", status: "paused" }
+                ]
+            }
+        ];
+
+        // ===== STATUS HELPERS =====
+        const statusPriority = { inProgress: 0, review: 1, testing: 2, paused: 3 };
+        const statusLabels = {
+            inProgress: "В работе",
+            review: "Ревью",
+            testing: "Тестируется",
+            paused: "На паузе"
+        };
+        const statusEmoji = {
+            inProgress: "🔥",
+            review: "👀",
+            testing: "🔬",
+            paused: "💤",
+            none: "🏖️"
+        };
+        const deskItemEmoji = {
+            coffee: "☕",
+            plant: "🌿",
+            cat: "🐱",
+            headphones: "🎧"
+        };
+
+        function getPrimaryStatus(tasks) {
+            if (tasks.length === 0) return "none";
+            let best = "paused";
+            for (const t of tasks) {
+                if (statusPriority[t.status] < statusPriority[best]) {
+                    best = t.status;
+                }
+            }
+            return best;
+        }
+
+        function getStatusColor(status) {
+            const map = { inProgress: "var(--green)", review: "var(--blue)", testing: "var(--purple)", paused: "var(--gray)", none: "var(--gray)" };
+            return map[status] || "var(--gray)";
+        }
+
+        // ===== RENDER =====
+        function renderWorkstations() {
+            const container = document.getElementById('workstations');
+            container.innerHTML = '';
+
+            let totalActive = 0, totalReview = 0, totalTesting = 0, totalPaused = 0;
+
+            team.forEach((person, idx) => {
+                const active = person.tasks.filter(t => t.status === 'inProgress');
+                const review = person.tasks.filter(t => t.status === 'review');
+                const testing = person.tasks.filter(t => t.status === 'testing');
+                const paused = person.tasks.filter(t => t.status === 'paused');
+
+                totalActive += active.length;
+                totalReview += review.length;
+                totalTesting += testing.length;
+                totalPaused += paused.length;
+
+                const primaryStatus = getPrimaryStatus(person.tasks);
+                const primaryTask = [...active, ...review, ...testing][0] || null;
+
+                const card = document.createElement('div');
+                card.className = 'workstation';
+                card.style.setProperty('--status-color', getStatusColor(primaryStatus));
+                card.setAttribute('data-primary-status', primaryStatus === 'review' ? 'review' : primaryStatus);
+
+                // Desk scene
+                let deskItemsHTML = person.deskItems.map((item, i) => {
+                    const pos = i === 0 ? 'left: 28px;' : 'right: 28px;';
+                    return `<div class="desk-item" style="bottom: 36px; ${pos}">${deskItemEmoji[item]}</div>`;
+                }).join('');
+
+                let monitorContent = '';
+                if (primaryTask) {
+                    monitorContent = `<span class="task-key-sm">${primaryTask.key}</span>${primaryTask.summary}`;
+                } else {
+                    monitorContent = '<span style="opacity:0.3">Нет активных задач</span>';
+                }
+
+                let animationHTML = '';
+                if (primaryStatus === 'inProgress') {
+                    animationHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+                } else if (primaryStatus === 'paused' || primaryStatus === 'none') {
+                    animationHTML = `<div class="zzz">z</div>`;
+                }
+
+                const statusBubble = `<div class="status-bubble">${statusEmoji[primaryStatus]}</div>`;
+
+                card.innerHTML = `
+                    <div class="desk-scene">
+                        <div class="monitor">
+                            <div class="monitor-frame">
+                                <div class="monitor-screen">${monitorContent}</div>
+                            </div>
+                            <div class="monitor-stand"></div>
+                            <div class="monitor-base"></div>
+                        </div>
+                        <div class="desk-surface"></div>
+                        <div class="character">
+                            <div class="char-head" style="background:${person.color}">${person.avatar}</div>
+                            <div class="char-body" style="background:${person.color}"></div>
+                        </div>
+                        ${deskItemsHTML}
+                        ${animationHTML}
+                        ${statusBubble}
+                    </div>
+                    <div class="person-info">
+                        <span class="person-name">${person.name}</span>
+                        <span class="role-badge ${person.role}">${person.roleLabel}</span>
+                        <span class="task-count"><strong>${person.tasks.length}</strong> задач</span>
+                    </div>
+                    ${renderTabs(person, idx, active, review, testing, paused)}
+                `;
+
+                container.appendChild(card);
+            });
+
+            // Header stats
+            document.getElementById('headerStats').innerHTML = `
+                <div class="stat-item stat-green"><div class="stat-value">${totalActive}</div><div class="stat-label">В работе</div></div>
+                <div class="stat-item stat-blue"><div class="stat-value">${totalReview}</div><div class="stat-label">На ревью</div></div>
+                <div class="stat-item stat-purple"><div class="stat-value">${totalTesting}</div><div class="stat-label">Тестируется</div></div>
+                <div class="stat-item stat-gray"><div class="stat-value">${totalPaused}</div><div class="stat-label">На паузе</div></div>
+            `;
+        }
+
+        function renderTabs(person, idx, active, review, testing, paused) {
+            if (person.tasks.length === 0) {
+                return `<div class="task-list"><div class="no-tasks"><div class="no-tasks-emoji">🏖️</div>Задач нет — отдыхает!</div></div>`;
+            }
+
+            const tabs = [
+                { key: 'inProgress', label: 'В работе', tasks: active },
+                { key: 'review', label: 'Ревью', tasks: review },
+                { key: 'testing', label: 'Тестируется', tasks: testing },
+                { key: 'paused', label: 'На паузе', tasks: paused }
+            ];
+
+            // Default tab: first non-empty, preferring inProgress
+            const defaultTab = tabs.find(t => t.tasks.length > 0)?.key || 'inProgress';
+
+            let tabsHTML = '<div class="task-tabs">';
+            tabs.forEach(tab => {
+                const isEmpty = tab.tasks.length === 0;
+                const isActive = tab.key === defaultTab;
+                const classes = ['task-tab'];
+                if (isActive) classes.push('active');
+                if (isEmpty) classes.push('empty');
+                tabsHTML += `<div class="${classes.join(' ')}" data-tab="${tab.key}" data-person="${idx}" onclick="switchTab(${idx}, '${tab.key}')">
+                    ${tab.label}<span class="tab-count">${tab.tasks.length}</span>
+                </div>`;
+            });
+            tabsHTML += '</div>';
+
+            let panelsHTML = '';
+            tabs.forEach(tab => {
+                const isActive = tab.key === defaultTab;
+                panelsHTML += `<div class="tab-panel${isActive ? ' active' : ''}" data-panel="${tab.key}" data-person="${idx}">`;
+                if (tab.tasks.length === 0) {
+                    panelsHTML += `<div class="tab-empty-msg">Нет задач</div>`;
+                } else {
+                    tab.tasks.forEach(t => {
+                        panelsHTML += renderTaskItem(t);
+                    });
+                }
+                panelsHTML += '</div>';
+            });
+
+            return tabsHTML + panelsHTML;
+        }
+
+        function renderTaskItem(t) {
+            const statusClass = t.status === 'review' ? 'review' :
+                                t.status === 'testing' ? 'testing' :
+                                t.status === 'inProgress' ? 'inProgress' : 'paused';
+            const pillClass = 's-' + statusClass;
+            return `
+                <div class="task-item" title="${t.summary}">
+                    <div class="task-dot status-${statusClass}"></div>
+                    <span class="task-key">${t.key}</span>
+                    <span class="task-summary">${t.summary}</span>
+                    <span class="task-status-pill ${pillClass}">${statusLabels[t.status] || t.status}</span>
+                </div>
+            `;
+        }
+
+        function switchTab(personIdx, tabKey) {
+            // Deactivate all tabs & panels for this person
+            document.querySelectorAll(`.task-tab[data-person="${personIdx}"]`).forEach(el => el.classList.remove('active'));
+            document.querySelectorAll(`.tab-panel[data-person="${personIdx}"]`).forEach(el => el.classList.remove('active'));
+            // Activate selected
+            document.querySelector(`.task-tab[data-person="${personIdx}"][data-tab="${tabKey}"]`)?.classList.add('active');
+            document.querySelector(`.tab-panel[data-person="${personIdx}"][data-panel="${tabKey}"]`)?.classList.add('active');
+        }
+
+        // ===== CLOCK =====
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clockTime').textContent = now.toLocaleTimeString('ru-RU');
+        }
+
+        // ===== INIT =====
+        renderWorkstations();
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
