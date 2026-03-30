@@ -476,6 +476,11 @@
             margin: 8px 0 4px;
         }
 
+        a.task-item {
+            text-decoration: none;
+            color: inherit;
+        }
+
         .task-item {
             display: flex;
             align-items: center;
@@ -484,12 +489,15 @@
             border-bottom: 1px solid rgba(255,255,255,0.03);
             font-size: 13px;
             transition: all 0.2s;
+            cursor: pointer;
+            border-radius: 4px;
         }
 
         .task-item:last-child { border-bottom: none; }
 
         .task-item:hover {
             padding-left: 4px;
+            background: rgba(255,255,255,0.03);
         }
 
         .task-dot {
@@ -676,7 +684,7 @@
             <div class="header-stats" id="headerStats"></div>
             <div class="clock">
                 <div class="clock-time" id="clockTime">--:--:--</div>
-                <div><span class="pulse-dot"></span>Данные от 30 марта</div>
+                <div><span class="pulse-dot"></span><span id="updateInfo">Загрузка...</span></div>
             </div>
         </header>
 
@@ -694,128 +702,9 @@
     </div>
 
     <script>
-        // ===== TEAM DATA =====
-        const team = [
-            {
-                name: "Никита К.",
-                fullName: "Коробочкин Никита",
-                role: "frontend",
-                roleLabel: "Frontend",
-                avatar: "НК",
-                color: "#22d3ee",
-                deskItems: ["headphones", "coffee"],
-                tasks: [
-                    { key: "DEV-5003", summary: "Перевести новости на новую админку", status: "inProgress" },
-                    { key: "DEV-3218", summary: "Миграция на Capacitor", status: "inProgress" }
-                ]
-            },
-            {
-                name: "Булат Х.",
-                fullName: "Булат Хайрутдинов",
-                role: "backend",
-                roleLabel: "Backend",
-                avatar: "БХ",
-                color: "#fb923c",
-                deskItems: ["coffee"],
-                tasks: [
-                    { key: "DEV-4859", summary: "Не сходятся цифры в отчёте Paygine и Pay", status: "paused" },
-                    { key: "DEV-4690", summary: "Не заполняется шкала чаевых официанта", status: "paused" },
-                    { key: "DEV-4670", summary: "Имя/фамилия путаются в профиле приложения", status: "paused" }
-                ]
-            },
-            {
-                name: "Юлия К.",
-                fullName: "Юлия Королева",
-                role: "backend",
-                roleLabel: "Backend",
-                avatar: "ЮК",
-                color: "#fb923c",
-                deskItems: ["plant", "coffee"],
-                tasks: [
-                    { key: "DEV-4687", summary: "Не начисляются баллы по автовозврату", status: "inProgress" },
-                    { key: "DEV-4412", summary: "Tilda: Эмулятор платёжного шлюза", status: "review" },
-                    { key: "DEV-4346", summary: "Одноразовость подарка пропадает при добавлении в чек", status: "review" },
-                    { key: "DEV-5022", summary: "Смещение времени email-рассылки", status: "review" },
-                    { key: "DEV-5050", summary: "LoggingBehavior не логирует AdminLog", status: "review" },
-                    { key: "DEV-5021", summary: "Разделить продажи в зале и на доставку", status: "review" },
-                    { key: "DEV-5008", summary: "Ошибка при отправке приглашения в Диадок", status: "review" },
-                    { key: "DEV-4286", summary: "Неверное значение paidByCash при скидке", status: "review" },
-                    { key: "DEV-3758", summary: "Рефакторинг Validator::setBonus()", status: "review" },
-                    { key: "DEV-2501", summary: "Кнопка Копировать в архивных PUSH-рассылках", status: "testing" },
-                    { key: "DEV-4920", summary: "Правки в выплаты чаевых официанту", status: "paused" },
-                    { key: "DEV-4976", summary: "Баллы автовозврата в мультирегиональном кабинете", status: "paused" },
-                    { key: "DEV-4654", summary: "Рефакторинг фильтрации аудиторий", status: "paused" },
-                    { key: "DEV-3187", summary: "Сохранять вылетающих из аудитории пользователей", status: "paused" },
-                    { key: "DEV-3663", summary: "Добавить логи в REST API", status: "paused" }
-                ]
-            },
-            {
-                name: "Алексей П.",
-                fullName: "Алексей Поляков",
-                role: "frontend",
-                roleLabel: "Frontend",
-                avatar: "АП",
-                color: "#22d3ee",
-                deskItems: ["cat"],
-                tasks: [
-                    { key: "DEV-5034", summary: "Не выводятся данные по клиентам акции", status: "inProgress" },
-                    { key: "DEV-4989", summary: "Верстка и связка API ручной настройки остатков", status: "review" },
-                    { key: "DEV-4940", summary: "Выводить % внедрения лояльности", status: "review" },
-                    { key: "DEV-5009", summary: "Правки в опросах", status: "review" }
-                ]
-            },
-            {
-                name: "Павел Ж.",
-                fullName: "Павел Журавлев",
-                role: "backend",
-                roleLabel: "Backend",
-                avatar: "ПЖ",
-                color: "#fb923c",
-                deskItems: ["plant"],
-                tasks: [
-                    { key: "DEV-3871", summary: "Начисление баллов по автовозврату в хранилище", status: "inProgress" },
-                    { key: "DEV-4449", summary: "Исправить проблемы сбора статистики", status: "inProgress" },
-                    { key: "DEV-2932", summary: "Логирование API запросов с ClickHouse", status: "inProgress" },
-                    { key: "DEV-4518", summary: "App: Back. Автообновление", status: "testing" },
-                    { key: "DEV-3685", summary: "Универсальная платёжная система GMB в Tilda", status: "paused" },
-                    { key: "DEV-2814", summary: "Убрать проверку номера при регистрации", status: "paused" },
-                    { key: "DEV-2419", summary: "Не синхронизируется часовой пояс", status: "paused" }
-                ]
-            },
-            {
-                name: "Павел М.",
-                fullName: "Павел Маслаков",
-                role: "qa",
-                roleLabel: "QA",
-                avatar: "ПМ",
-                color: "#c084fc",
-                deskItems: ["coffee"],
-                tasks: [
-                    { key: "DEV-2981", summary: "Актуализировать данные в TestIT", status: "inProgress" }
-                ]
-            },
-            {
-                name: "Анастасия С.",
-                fullName: "Анастасия Сушкова",
-                role: "design",
-                roleLabel: "Дизайн",
-                avatar: "АС",
-                color: "#f472b6",
-                deskItems: ["plant", "coffee"],
-                tasks: [
-                    { key: "DEV-3780", summary: "Новая админка — Клиенты и аудитории", status: "inProgress" },
-                    { key: "DEV-5028", summary: "Цена товара для доставки и самовывоза", status: "inProgress" },
-                    { key: "DEV-4733", summary: "Сгораемые уровни в Pay, App", status: "inProgress" },
-                    { key: "DEV-4095", summary: "Блок Уже заказывали", status: "review" },
-                    { key: "DEV-4632", summary: "Выводить кол-во запросов и лимиты", status: "paused" },
-                    { key: "DEV-3684", summary: "Дизайн-проект корзины Tilda", status: "paused" },
-                    { key: "DEV-4096", summary: "Доставка ко времени", status: "paused" },
-                    { key: "DEV-4192", summary: "Экран начисления баллов для прилаги", status: "paused" },
-                    { key: "DEV-4195", summary: "Кнопка действия для акций и новостей", status: "paused" },
-                    { key: "DEV-4217", summary: "Дашборд в WellSales", status: "paused" }
-                ]
-            }
-        ];
+        // ===== STATE =====
+        let team = [];
+        const REFRESH_INTERVAL = 60_000; // 1 min
 
         // ===== STATUS HELPERS =====
         const statusPriority = { inProgress: 0, review: 1, testing: 2, paused: 3 };
@@ -826,17 +715,17 @@
             paused: "На паузе"
         };
         const statusEmoji = {
-            inProgress: "🔥",
-            review: "👀",
-            testing: "🔬",
-            paused: "💤",
-            none: "🏖️"
+            inProgress: "\u{1F525}",
+            review: "\u{1F440}",
+            testing: "\u{1F52C}",
+            paused: "\u{1F4A4}",
+            none: "\u{1F3D6}\u{FE0F}"
         };
         const deskItemEmoji = {
-            coffee: "☕",
-            plant: "🌿",
-            cat: "🐱",
-            headphones: "🎧"
+            coffee: "\u2615",
+            plant: "\u{1F33F}",
+            cat: "\u{1F431}",
+            headphones: "\u{1F3A7}"
         };
 
         function getPrimaryStatus(tasks) {
@@ -853,6 +742,23 @@
         function getStatusColor(status) {
             const map = { inProgress: "var(--green)", review: "var(--blue)", testing: "var(--purple)", paused: "var(--gray)", none: "var(--gray)" };
             return map[status] || "var(--gray)";
+        }
+
+        // ===== FETCH =====
+        async function fetchTeam() {
+            try {
+                const res = await fetch('/api/team');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                team = data.team;
+                const updatedAt = new Date(data.updatedAt);
+                document.getElementById('updateInfo').textContent =
+                    `Обновлено в ${updatedAt.toLocaleTimeString('ru-RU')}`;
+                renderWorkstations();
+            } catch (err) {
+                console.error('Fetch failed:', err);
+                document.getElementById('updateInfo').textContent = `Ошибка загрузки`;
+            }
         }
 
         // ===== RENDER =====
@@ -881,10 +787,9 @@
                 card.style.setProperty('--status-color', getStatusColor(primaryStatus));
                 card.setAttribute('data-primary-status', primaryStatus === 'review' ? 'review' : primaryStatus);
 
-                // Desk scene
-                let deskItemsHTML = person.deskItems.map((item, i) => {
+                let deskItemsHTML = (person.deskItems || []).map((item, i) => {
                     const pos = i === 0 ? 'left: 28px;' : 'right: 28px;';
-                    return `<div class="desk-item" style="bottom: 36px; ${pos}">${deskItemEmoji[item]}</div>`;
+                    return `<div class="desk-item" style="bottom: 36px; ${pos}">${deskItemEmoji[item] || ''}</div>`;
                 }).join('');
 
                 let monitorContent = '';
@@ -932,7 +837,6 @@
                 container.appendChild(card);
             });
 
-            // Header stats
             document.getElementById('headerStats').innerHTML = `
                 <div class="stat-item stat-green"><div class="stat-value">${totalActive}</div><div class="stat-label">В работе</div></div>
                 <div class="stat-item stat-blue"><div class="stat-value">${totalReview}</div><div class="stat-label">На ревью</div></div>
@@ -943,7 +847,7 @@
 
         function renderTabs(person, idx, active, review, testing, paused) {
             if (person.tasks.length === 0) {
-                return `<div class="task-list"><div class="no-tasks"><div class="no-tasks-emoji">🏖️</div>Задач нет — отдыхает!</div></div>`;
+                return `<div class="task-list"><div class="no-tasks"><div class="no-tasks-emoji">\u{1F3D6}\u{FE0F}</div>Задач нет — отдыхает!</div></div>`;
             }
 
             const tabs = [
@@ -953,7 +857,6 @@
                 { key: 'paused', label: 'На паузе', tasks: paused }
             ];
 
-            // Default tab: first non-empty, preferring inProgress
             const defaultTab = tabs.find(t => t.tasks.length > 0)?.key || 'inProgress';
 
             let tabsHTML = '<div class="task-tabs">';
@@ -976,9 +879,7 @@
                 if (tab.tasks.length === 0) {
                     panelsHTML += `<div class="tab-empty-msg">Нет задач</div>`;
                 } else {
-                    tab.tasks.forEach(t => {
-                        panelsHTML += renderTaskItem(t);
-                    });
+                    tab.tasks.forEach(t => { panelsHTML += renderTaskItem(t); });
                 }
                 panelsHTML += '</div>';
             });
@@ -990,22 +891,20 @@
             const statusClass = t.status === 'review' ? 'review' :
                                 t.status === 'testing' ? 'testing' :
                                 t.status === 'inProgress' ? 'inProgress' : 'paused';
-            const pillClass = 's-' + statusClass;
+            const url = `https://tracker.yandex.ru/${t.key}`;
             return `
-                <div class="task-item" title="${t.summary}">
+                <a class="task-item" href="${url}" target="_blank" rel="noopener" title="${t.summary}">
                     <div class="task-dot status-${statusClass}"></div>
                     <span class="task-key">${t.key}</span>
                     <span class="task-summary">${t.summary}</span>
-                    <span class="task-status-pill ${pillClass}">${statusLabels[t.status] || t.status}</span>
-                </div>
+                    <span class="task-status-pill s-${statusClass}">${statusLabels[t.status] || t.status}</span>
+                </a>
             `;
         }
 
         function switchTab(personIdx, tabKey) {
-            // Deactivate all tabs & panels for this person
             document.querySelectorAll(`.task-tab[data-person="${personIdx}"]`).forEach(el => el.classList.remove('active'));
             document.querySelectorAll(`.tab-panel[data-person="${personIdx}"]`).forEach(el => el.classList.remove('active'));
-            // Activate selected
             document.querySelector(`.task-tab[data-person="${personIdx}"][data-tab="${tabKey}"]`)?.classList.add('active');
             document.querySelector(`.tab-panel[data-person="${personIdx}"][data-panel="${tabKey}"]`)?.classList.add('active');
         }
@@ -1017,9 +916,10 @@
         }
 
         // ===== INIT =====
-        renderWorkstations();
+        fetchTeam();
         updateClock();
         setInterval(updateClock, 1000);
+        setInterval(fetchTeam, REFRESH_INTERVAL);
     </script>
 </body>
 </html>
