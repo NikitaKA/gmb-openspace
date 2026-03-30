@@ -27,28 +27,28 @@ const DEPARTMENTS = [
     {
         key: 'backend', label: 'Backend', color: '#fb923c',
         members: [
-            { login: 'pz',  name: 'Павел Ж.',   fullName: 'Павел Журавлев',    avatar: 'ПЖ', lead: true,  deskItems: ['plant'] },
-            { login: 'hb',  name: 'Булат Х.',   fullName: 'Булат Хайрутдинов', avatar: 'БХ', lead: false, deskItems: ['coffee'] },
-            { login: 'uk',  name: 'Юлия К.',    fullName: 'Юлия Королева',     avatar: 'ЮК', lead: false, deskItems: ['plant', 'coffee'] },
+            { login: 'pz',  name: 'Павел Ж.',   fullName: 'Павел Журавлев',    avatar: 'ПЖ', gender: 'm', lead: true,  deskItems: ['plant'] },
+            { login: 'hb',  name: 'Булат Х.',   fullName: 'Булат Хайрутдинов', avatar: 'БХ', gender: 'm', lead: false, deskItems: ['coffee'] },
+            { login: 'uk',  name: 'Юлия К.',    fullName: 'Юлия Королева',     avatar: 'ЮК', gender: 'f', seed: 'Yulia2', lead: false, deskItems: ['plant', 'coffee'] },
         ],
     },
     {
         key: 'frontend', label: 'Frontend', color: '#22d3ee',
         members: [
-            { login: 'nk',  name: 'Никита К.',   fullName: 'Коробочкин Никита', avatar: 'НК', lead: true,  deskItems: ['headphones', 'coffee'] },
-            { login: 'ap',  name: 'Алексей П.',  fullName: 'Алексей Поляков',   avatar: 'АП', lead: false, deskItems: ['cat'] },
+            { login: 'nk',  name: 'Никита К.',   fullName: 'Коробочкин Никита', avatar: 'НК', gender: 'm', lead: true,  deskItems: ['headphones', 'coffee'] },
+            { login: 'ap',  name: 'Алексей П.',  fullName: 'Алексей Поляков',   avatar: 'АП', gender: 'm', lead: false, deskItems: ['cat'] },
         ],
     },
     {
         key: 'qa', label: 'QA', color: '#c084fc',
         members: [
-            { login: 'mp',  name: 'Павел М.',   fullName: 'Павел Маслаков',    avatar: 'ПМ', lead: true,  deskItems: ['coffee'] },
+            { login: 'mp',  name: 'Павел М.',   fullName: 'Павел Маслаков',    avatar: 'ПМ', gender: 'm', lead: true,  deskItems: ['coffee'] },
         ],
     },
     {
         key: 'design', label: 'Дизайн', color: '#f472b6',
         members: [
-            { login: 'sav', name: 'Анастасия С.', fullName: 'Анастасия Сушкова', avatar: 'АС', lead: true, deskItems: ['plant', 'coffee'] },
+            { login: 'sav', name: 'Анастасия С.', fullName: 'Анастасия Сушкова', avatar: 'АС', gender: 'f', lead: true, deskItems: ['plant', 'coffee'] },
         ],
     },
 ];
@@ -146,6 +146,9 @@ async function fetchTeamTasks() {
             role: dept.key,
             roleLabel: dept.label,
             avatar: member.avatar,
+            avatarUrl: member.gender === 'f'
+                ? `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(member.seed || member.fullName)}&skinColor=f5d0c5&beardProbability=0&hair=long01,long02,long03,long04,long05,long06,long07,long08,long09,long10,long11,long12,long13,long14`
+                : `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(member.seed || member.fullName)}&skinColor=f5d0c5&beardProbability=20&hair=short01,short02,short03,short04,short05`,
             color: dept.color,
             lead: member.lead,
             deskItems: member.deskItems,

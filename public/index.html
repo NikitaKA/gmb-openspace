@@ -343,8 +343,8 @@
         }
 
         .char-head {
-            width: 44px;
-            height: 44px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -355,6 +355,13 @@
             position: relative;
             z-index: 2;
             border: 3px solid var(--bg-card);
+            overflow: hidden;
+        }
+
+        .char-head img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .char-body {
@@ -879,7 +886,7 @@
                         </div>
                         <div class="desk-surface"></div>
                         <div class="character">
-                            <div class="char-head" style="background:${person.color}">${person.avatar}</div>
+                            <div class="char-head" style="background:${person.color}"><img src="${person.avatarUrl}" alt="${person.avatar}" onerror="this.parentElement.textContent='${person.avatar}'"></div>
                             <div class="char-body" style="background:${person.color}"></div>
                         </div>
     
