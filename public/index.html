@@ -397,7 +397,6 @@
             top: 12px;
             right: 16px;
             font-size: 18px;
-            animation: float 3s ease-in-out infinite;
         }
 
         @keyframes float {
@@ -770,11 +769,11 @@
             paused: "На паузе"
         };
         const statusEmoji = {
-            inProgress: "\u{1F525}",
-            review: "\u{1F440}",
-            testing: "\u{1F52C}",
+            inProgress: "\u{1F6E0}\u{FE0F}",
+            review: "",
+            testing: "",
             paused: "\u{1F4A4}",
-            none: "\u{1F3D6}\u{FE0F}"
+            none: "\u{1F4A4}"
         };
         const deskItemEmoji = {
             coffee: "\u2615",
@@ -864,12 +863,8 @@
                     ? `<span class="task-key-sm">${primaryTask.key}</span>${primaryTask.summary}`
                     : '<span style="opacity:0.3">Нет активных задач</span>';
 
-                let animationHTML = '';
-                if (primaryStatus === 'inProgress') {
-                    animationHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
-                } else if (primaryStatus === 'paused' || primaryStatus === 'none') {
-                    animationHTML = `<div class="zzz">z</div>`;
-                }
+                const hasInProgress = person.tasks.some(t => t.status === 'inProgress');
+                let animationHTML = hasInProgress ? '' : `<div class="zzz">z</div>`;
 
                 const leadBadge = person.lead ? `<span class="lead-badge">Lead</span>` : '';
 
@@ -887,9 +882,9 @@
                             <div class="char-head" style="background:${person.color}">${person.avatar}</div>
                             <div class="char-body" style="background:${person.color}"></div>
                         </div>
-                        ${deskItemsHTML}
+    
                         ${animationHTML}
-                        <div class="status-bubble">${statusEmoji[primaryStatus]}</div>
+                        <div class="status-bubble">${hasInProgress ? statusEmoji.inProgress : statusEmoji.paused}</div>
                     </div>
                     <div class="person-info">
                         <span class="person-name">${person.name}</span>
@@ -951,15 +946,13 @@
                 { key: 'paused', label: 'На паузе', tasks: paused }
             ];
 
-            const defaultTab = tabs.find(t => t.tasks.length > 0)?.key || 'inProgress';
+            const defaultTab = 'inProgress';
 
             let tabsHTML = '<div class="task-tabs">';
             tabs.forEach(tab => {
-                const isEmpty = tab.tasks.length === 0;
                 const isActive = tab.key === defaultTab;
                 const classes = ['task-tab'];
                 if (isActive) classes.push('active');
-                if (isEmpty) classes.push('empty');
                 tabsHTML += `<div class="${classes.join(' ')}" data-tab="${tab.key}" data-person="${idx}" onclick="switchTab(${idx}, '${tab.key}')">
                     ${tab.label}<span class="tab-count">${tab.tasks.length}</span>
                 </div>`;
