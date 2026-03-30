@@ -23,15 +23,40 @@ if (!TRACKER_TOKEN || !TRACKER_ORG) {
 }
 
 // ===== Team config =====
-const TEAM = [
-    { login: 'nk',  name: 'Никита К.',     fullName: 'Коробочкин Никита',  role: 'frontend', roleLabel: 'Frontend', avatar: 'НК', color: '#22d3ee', deskItems: ['headphones', 'coffee'] },
-    { login: 'hb',  name: 'Булат Х.',      fullName: 'Булат Хайрутдинов',  role: 'backend',  roleLabel: 'Backend',  avatar: 'БХ', color: '#fb923c', deskItems: ['coffee'] },
-    { login: 'uk',  name: 'Юлия К.',       fullName: 'Юлия Королева',      role: 'backend',  roleLabel: 'Backend',  avatar: 'ЮК', color: '#fb923c', deskItems: ['plant', 'coffee'] },
-    { login: 'ap',  name: 'Алексей П.',    fullName: 'Алексей Поляков',    role: 'frontend', roleLabel: 'Frontend', avatar: 'АП', color: '#22d3ee', deskItems: ['cat'] },
-    { login: 'pz',  name: 'Павел Ж.',      fullName: 'Павел Журавлев',     role: 'backend',  roleLabel: 'Backend',  avatar: 'ПЖ', color: '#fb923c', deskItems: ['plant'] },
-    { login: 'mp',  name: 'Павел М.',      fullName: 'Павел Маслаков',     role: 'qa',       roleLabel: 'QA',       avatar: 'ПМ', color: '#c084fc', deskItems: ['coffee'] },
-    { login: 'sav', name: 'Анастасия С.',  fullName: 'Анастасия Сушкова',  role: 'design',   roleLabel: 'Дизайн',   avatar: 'АС', color: '#f472b6', deskItems: ['plant', 'coffee'] },
+const DEPARTMENTS = [
+    {
+        key: 'backend', label: 'Backend', color: '#fb923c',
+        members: [
+            { login: 'pz',  name: 'Павел Ж.',   fullName: 'Павел Журавлев',    avatar: 'ПЖ', lead: true,  deskItems: ['plant'] },
+            { login: 'hb',  name: 'Булат Х.',   fullName: 'Булат Хайрутдинов', avatar: 'БХ', lead: false, deskItems: ['coffee'] },
+            { login: 'uk',  name: 'Юлия К.',    fullName: 'Юлия Королева',     avatar: 'ЮК', lead: false, deskItems: ['plant', 'coffee'] },
+        ],
+    },
+    {
+        key: 'frontend', label: 'Frontend', color: '#22d3ee',
+        members: [
+            { login: 'nk',  name: 'Никита К.',   fullName: 'Коробочкин Никита', avatar: 'НК', lead: true,  deskItems: ['headphones', 'coffee'] },
+            { login: 'ap',  name: 'Алексей П.',  fullName: 'Алексей Поляков',   avatar: 'АП', lead: false, deskItems: ['cat'] },
+        ],
+    },
+    {
+        key: 'qa', label: 'QA', color: '#c084fc',
+        members: [
+            { login: 'mp',  name: 'Павел М.',   fullName: 'Павел Маслаков',    avatar: 'ПМ', lead: true,  deskItems: ['coffee'] },
+        ],
+    },
+    {
+        key: 'design', label: 'Дизайн', color: '#f472b6',
+        members: [
+            { login: 'sav', name: 'Анастасия С.', fullName: 'Анастасия Сушкова', avatar: 'АС', lead: true, deskItems: ['plant', 'coffee'] },
+        ],
+    },
 ];
+
+// Flat list for API queries
+const TEAM = DEPARTMENTS.flatMap(dept =>
+    dept.members.map(m => ({ ...m, role: dept.key, roleLabel: dept.label, color: dept.color, department: dept.key }))
+);
 
 const QUEUE = 'DEV';
 const STATUSES = 'В работе, Тестируется, Ревью, В ревью, Ожидает ревью, На паузе';
@@ -105,19 +130,27 @@ async function fetchTeamTasks() {
         });
     }
 
-    // Build response matching frontend structure
-    return TEAM.map(member => ({
-        name: member.name,
-        fullName: member.fullName,
-        role: member.role,
-        roleLabel: member.roleLabel,
-        avatar: member.avatar,
-        color: member.color,
-        deskItems: member.deskItems,
-        tasks: (tasksByLogin[member.login] || []).sort((a, b) => {
-            const pri = { inProgress: 0, review: 1, testing: 2, paused: 3 };
-            return (pri[a.status] ?? 9) - (pri[b.status] ?? 9);
-        }),
+    // Build response grouped by departments
+    const sortTasks = (tasks) => tasks.sort((a, b) => {
+        const pri = { inProgress: 0, review: 1, testing: 2, paused: 3 };
+        return (pri[a.status] ?? 9) - (pri[b.status] ?? 9);
+    });
+
+    return DEPARTMENTS.map(dept => ({
+        key: dept.key,
+        label: dept.label,
+        color: dept.color,
+        members: dept.members.map(member => ({
+            name: member.name,
+            fullName: member.fullName,
+            role: dept.key,
+            roleLabel: dept.label,
+            avatar: member.avatar,
+            color: dept.color,
+            lead: member.lead,
+            deskItems: member.deskItems,
+            tasks: sortTasks(tasksByLogin[member.login] || []),
+        })),
     }));
 }
 
@@ -150,7 +183,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/team', async (req, res) => {
     try {
         const { data, updatedAt } = await getTeamData();
-        res.json({ team: data, updatedAt });
+        res.json({ departments: data, updatedAt });
     } catch (err) {
         res.status(502).json({ error: 'Failed to fetch tracker data', details: err.message });
     }
